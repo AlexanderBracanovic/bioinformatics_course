@@ -1,0 +1,236 @@
+---
+title: "Advanced Bioinformatics 2023 Assessment"
+author: "m2207549"
+output: html_document
+---
+
+## 3.1 Using the sum() function and : operator, write an expression in the code snippet to evaluate the sum of all integers between 5 and 55
+
+The sum function is used to add integers together whilst the two numbers in the brackets separated by : indicate the starting and end number for which all integers between should be added together.
+
+```{r}
+result <- sum(5:55)
+result
+```
+
+## 3.2 Write a function called sumfun with one input parameter, called n, that calculates the sum of all integers between 5 and n. Use the function to do the calculation for n = 10, n = 20, and n = 100 and present the results.
+
+```{r}
+# First the sumfun function is defined as n 
+
+sumfun <- function(n) 
+  # Then the sum of integers from 5 to n is calculated
+  
+  result <- sum(5:n)
+
+  return(result)
+
+# Call the sumfun function with the three specified different values of n
+
+n_values <- c(10, 20, 100)
+
+sum_values <- sapply(n_values, sumfun)
+
+# A data frame is then created to store the results
+
+results_df <- data.frame(n = n_values, sum = sum_values)
+
+#Finally the results are presented in the following table 
+
+knitr::kable(results_df, caption = "Sum of Integers between 5 and n")
+```
+
+## 3.3. The famous Fibonacci series is calculated as the sum of the two preceding members of the sequence, where the first two steps in the sequence are 1, 1. Write an R script using a for loop to calculate and print out the first 12 entries of the Fibonacci series.
+
+```{r}
+# The variables for the first two numbers; 1,1 in the Fibonacci series are labelles as n1 and n2
+
+n1 <- 1
+n2 <- 1
+
+# The first two numbers of the series are printed using the cat function and that the two numbers are separated by a comma
+
+cat(n1, n2, sep = ", ")
+
+# Issue a loop with the for command to calculate and print the next 10 numbers in the series. 3 and 12 are placed in brackets in order to signify that the series should start from the 3rd integer (since the first two integers are given) and go up until the 12th.
+
+for (i in 3:12) {
+  # The next integer in the series is calculated as the sum of the two preceding integers using next_num (where the first two integers have been defined as n1 and n2.) 
+  
+  next_num <- n1 + n2
+  
+  # Similarly to previously done, the next number is printed using the cat function
+  
+  cat(", ", next_num)
+  
+  # n1 and n2 are then set for the next iteration of the loop
+  
+  n1 <- n2
+  n2 <- next_num
+  # As such, the series is seen below:
+}
+
+```
+
+## 3.4 With the mtcars dataset bundled with R, use ggplot to generate a box of miles per gallon (in the variable mpg) as a function of the number of gears (in the variable gear). Use the fill aesthetic to colour bars by number of gears.
+
+```{r}
+# First the ggplot library is obtained
+
+library(ggplot2)
+
+# Then the mtcars dataset is obtained and viewed
+
+data(mtcars)
+
+mtcars
+
+# A boxplot is created using ggplot for the mtcars dataset. The x and y functions are used to set miles per gallon as a function of number of gears. The fill function is used to ensure that the number of gears are colored in the boxplot.  
+# The labs function is used to ensure that each component of the boxplot is labelled 
+
+ggplot(mtcars, aes(x = factor(gear), y = mpg, fill = factor(gear))) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Miles Per Gallon (mpg) by Number of Gears (gear)",
+       x = "Number of Gears",
+       y = "Miles Per Gallon (mpg)") 
+```
+
+## 3.5.Using the cars dataset and the function lm, fit a linear relationship between speed and breaking distance in the variable distance. What are the fitted slope and intercept of the line, and their standard errors? What are the units used for the variables in the dataset? 
+
+```{r}
+# Load the mtcars dataset
+
+data(cars)
+
+#Display of dataset shows that the units for speed and distance are not included. As such it may be assumed that speed is in miles per hour and distance is in feet based on the values and context of the raw data 
+
+cars
+
+# The lm_model function allows for a linear regression relationship to be formed between stopping distance and speed for the cars in the dataset
+
+lm_model <- lm(dist ~ speed, data = cars)
+
+# Coefficients are calculated frok the linear regression model by defining the two parameters: intercept and slope. The final line calculates the standard error of the two coefficients provided.
+
+coefficients <- coef(lm_model)
+intercept <- coefficients[1]
+slope <- coefficients[2]
+se <- sqrt(diag(vcov(lm_model)))
+
+# To print the results of the intercept and slope as well as the standard errors of the two coefficients; the cat function is used. 
+cat("Intercept: ", intercept, "\n")
+cat("Slope: ", slope, "\n")
+cat("Standard Error (Intercept): ", se[1], "\n")
+cat("Standard Error (Slope): ", se[2], "\n")
+
+```
+
+## 3.6. Use ggplot to plot the data points from Task 3.5. and the linear fit.
+
+```{r}
+# Data is plotted using ggplot with firstly the x and y axis being defined as speed and distance respectively. Aspects such as naming of aspects of the graph such as intercept and slope are also included as well as colour of the line of best fit and title of the graph. 
+
+ggplot(cars, aes(x = speed, y = dist)) +
+  geom_point() +
+  geom_abline(intercept = intercept, slope = slope, color = "blue") +
+  labs(title = "Linear Regression: Speed vs. Braking Distance",
+       x = "Speed (mph)",
+       y = "Braking Distance (ft)")
+```
+
+## 3.7. Again using the cars dataset, now use linear regression (lm) to estimate the average reaction time for the driver to start breaking (in seconds). To simplify matters you may assume that once breaking commences, breaking distance is proportional to the square of the speed. Explain the steps in your analysis. Do you get reasonable results? Finally, use ggplot to plot the data points and the fitted relationship.
+
+```{r}
+# Braking distance was calculated assuming that breaking distance is proportionate to the square of speed
+braking_distance_squared <- cars$speed^2
+
+# A linear regression model was then fitted for braking distance and speed in the cars dataset
+lm_model <- lm(braking_distance_squared ~ speed, data = cars)
+
+# Extraction of intercept and slope coefficients labelled as coef1 and coef2 
+intercept <- coef(lm_model)[1]
+slope <- coef(lm_model)[2]
+
+# Calculation for estimated average reaction time
+reaction_time <- sqrt(intercept)
+
+# Print results shows that no number was produced for the estimated average reaction time due to warning insqrt intercept. This may be caused by the fact that the intercept doesn't go through 0, thus calculating a squared negative. 
+cat("Estimated Average Reaction Time (seconds): ", reaction_time, "\n")
+
+# Use ggplot to plot the data points and fitted relationship
+library(ggplot2)
+
+# ggplot function was used to define and the x and y axis of the plot as well as the title for the graph. The graph indicates a strong positive correlation between speed and braking distance squared. 
+ggplot(cars, aes(x = speed, y = braking_distance_squared)) +
+  geom_point() +  # Add data points
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "blue") +  # Add fitted line
+  labs(title = "Braking Distance vs. Speed", x = "Speed (mph)", y = "Braking Distance Squared") + 
+  theme_minimal()  
+```
+
+# RNA-seq assessment
+
+```{r}
+
+#setting and verifying the current working directory
+
+setwd("C:/Users/Alex/Documents")
+
+getwd()
+```
+
+
+## 3.8.Read in count data and sample description.
+
+```{r}
+#Read count information
+
+all_counts <- read.csv(file = "C:/Users/Alex/Documents/exercise1_counts.csv", header = T, row.names =1)
+head(all_counts)
+
+#Read the sample description
+
+sam_des <- read.table("C:/Users/Alex/Documents/exercise1_sample_description.info", sep = "\t", header = TRUE)
+head(sam_des)
+
+```
+
+## 3.9. Create col_data and check dimensions
+
+```{r}
+#Creating col_data from sample description
+
+col_data <- data.frame(sample = sam_des$sample, condition = sam_des$condition, batch = sam_des$batch)
+head(col_data)
+
+#Check dimensions
+
+all(colnames(all_counts) == col_data$name)
+```
+
+## 3.10. Construct DESeqDataSet object using count data and sample description
+
+```{r}
+#Load DESeq2 library
+
+suppressPackageStartupMessages(library(DESeq2))
+
+#Create DESeq object
+
+dds <- DESeqDataSetFromMatrix(countData = all_counts, colData = col_data, design =~ condition)
+dds
+```
+
+## 3.11. Perform rlog and VST transformation on the data 
+
+```{r}
+#Performing rlog
+
+rld <- rlog(dds)
+
+#Performing VST transformation
+
+vst <- varianceStabilizingTransformation(dds)
+```
+
+
